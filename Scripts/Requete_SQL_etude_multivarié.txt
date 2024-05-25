@@ -1,0 +1,140 @@
+
+
+//création de la table qui permettra de faire l'étude mutli varié comme la corrélation par exemple 
+CREATE OR REPLACE TABLE `ml-segmentation-client.Transaction.transaction_full` AS 
+SELECT 
+    h.client_id, 
+    h.transaction_id,
+    h.purchase_date, 
+    h.paid_with_credit_card, 
+    h.paid_with_gift_card, 
+    l.transaction_line_id, 
+    l.family_code, 
+    l.family_name,
+    l.product_code, 
+    l.product_name, 
+    l.vat, 
+    l.unit_raw_price_ttc,
+    l.unit_raw_price_ht, 
+    l.unit_net_price_ttc,
+    l.unit_net_price_ht, 
+    l.qty,
+    l.tot_raw_ttc, 
+    l.tot_raw_ht, 
+    l.tot_net_ht, 
+    l.tot_net_tte 
+FROM `ml-segmentation-client.Transaction.Transactions_header` h
+JOIN `ml-segmentation-client.Transaction.transaction_line_nettoye` l 
+ON h.transaction_id = l.transaction_id 
+WHERE 
+    h.purchase_date BETWEEN (SELECT MIN(purchase_date) FROM `ml-segmentation-client.Transaction.Transactions_header` WHERE purchase_date IS NOT NULL) 
+    AND (SELECT MAX(purchase_date) FROM `ml-segmentation-client.Transaction.Transactions_header` WHERE purchase_date IS NOT NULL)
+    AND h.purchase_date IS NOT NULL;
+
+//CORRELATION : 
+
+//Numéro total de transactions et montant total dépensé :
+SELECT
+  CORR(num_transactions, total_spent) AS correlation_num_transactions_total_spent
+FROM (
+  SELECT
+    client_id,
+    COUNT(DISTINCT transaction_id) AS num_transactions,
+    SUM(tot_net_ttc) AS total_spent
+  FROM
+    `Transaction.transaction_full`
+  GROUP BY
+    client_id
+)
+
+// Corrélation entre le Nombre de Produits Distincts Achetés et le Montant Total Dépensé par Client :
+SELECT
+  CORR(num_distinct_products, total_spent) AS correlation_num_distinct_products_total_spent
+FROM (
+  SELECT
+    client_id,
+    COUNT(DISTINCT product_code) AS num_distinct_products,
+    SUM(tot_net_ttc) AS total_spent
+  FROM
+    `Transaction.transaction_full`
+  GROUP BY
+    client_id
+)
+
+//Corrélation entre le Prix Unitaire TTC et la Quantité de Produits Achetée dans une Transaction :
+SELECT
+    CORR(unit_net_price_ttc, qty) AS correlation_unit_net_price_qty
+FROM
+    `Transaction.transaction_full`;
+
+// Corrélation entre le Prix Moyen des Produits par Transaction et le Nombre Total d'Achats
+    SELECT
+	  CORR(avg_transaction_value, total_items_bought) AS correlation_avg_transaction_value_total_items_bought
+	FROM (
+	  SELECT
+	    client_id,
+	    AVG(tot_net_ttc) AS avg_transaction_value,
+	    SUM(qty) AS total_items_bought
+	  FROM
+	    `Transaction.transaction_full`
+	  GROUP BY
+	    client_id
+	)
+
+
+//Corrélation entre la Durée de Vie du Client et le Total Dépensé
+	SELECT
+	  CORR(customer_lifetime_days, total_spent) AS correlation_customer_lifetime_total_spent
+	FROM (
+	  SELECT
+	    client_id,
+	    DATE_DIFF(MAX(purchase_date), MIN(purchase_date), DAY) AS customer_lifetime_days,
+	    SUM(tot_net_ttc) AS total_spent
+	  FROM
+	    `Transaction.transaction_full`
+	  GROUP BY
+	    client_id
+	)
+
+
+//Corrélation entre le Pourcentage de Paiements par Carte de Crédit et le Montant Total Dépensé
+SELECT
+  CORR(pct_paid_with_credit_card, total_spent) AS correlation_pct_credit_card_total_spent
+FROM (
+  SELECT
+    client_id,
+    AVG(paid_with_credit_card) * 100 AS pct_paid_with_credit_card,
+    SUM(tot_net_ttc) AS total_spent
+  FROM
+    `Transaction.transaction_full`
+  GROUP BY
+    client_id
+)
+
+//Corrélation entre la Quantité Moyenne par Transaction et le Montant Total Dépensé
+SELECT
+  CORR(total_qty, total_spent) AS correlation_total_qty_total_spent
+FROM (
+  SELECT
+    client_id,
+    SUM(qty) AS total_qty,
+    SUM(tot_net_ttc) AS total_spent
+  FROM
+    `Transaction.transaction_full`
+  GROUP BY
+    client_id
+)
+
+//Corrélation entre le Nombre de Transactions et le Nombre de Familles de Produits Distinctes
+SELECT
+  CORR(num_transactions, num_distinct_families) AS correlation_num_transactions_num_distinct_families
+FROM (
+  SELECT
+    client_id,
+    COUNT(DISTINCT transaction_id) AS num_transactions,
+    COUNT(DISTINCT family_name) AS num_distinct_families
+  FROM
+    `Transaction.transaction_full`
+  GROUP BY
+    client_id
+)

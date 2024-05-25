@@ -1,0 +1,50 @@
+// création de la table client pour le Machine Learning 
+CREATE TABLE Transaction.client AS
+SELECT 
+    th.client_id,
+    SUM(tl.unit_net_price_ttc * tl.qty) AS chiffre_affaires_total,
+    SUM(CASE WHEN tl.family_name = 'Skincare Products' THEN tl.qty ELSE 0 END) AS nombre_article_pour_skincare_products,
+    SUM(CASE WHEN tl.family_name = 'Face Makeup' THEN tl.qty ELSE 0 END) AS nombre_article_pour_face_makeup,
+    SUM(CASE WHEN tl.family_name = 'Eye Makeup' THEN tl.qty ELSE 0 END) AS nombre_article_pour_eye_makeup,
+    SUM(CASE WHEN tl.family_name = 'Nail Products' THEN tl.qty ELSE 0 END) AS nombre_article_pour_nail_products,
+    SUM(CASE WHEN tl.family_name = 'Lip Products' THEN tl.qty ELSE 0 END) AS nombre_article_pour_lip_products,
+    CASE 
+        WHEN SUM(CASE WHEN tl.unit_net_price_ttc < tl.unit_raw_price_ttc THEN 1 ELSE 0 END) / COUNT(DISTINCT th.transaction_id) >= 0.6 THEN 1
+        ELSE 0
+    END AS client_promo,
+    CASE 
+        WHEN SUM(CASE WHEN CAST(th.paid_with_gift_card AS INT64) = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(DISTINCT th.transaction_id), 0) >= 0.6 THEN 1
+        ELSE 0
+    END AS client_carte_cadeau,
+    COUNT(DISTINCT th.transaction_id) / NULLIF(DATE_DIFF(DATE(MAX(th.purchase_date)), DATE(MIN(th.purchase_date)), DAY), 0) AS frequence_achat,
+    SUM(tl.unit_net_price_ttc * tl.qty) / NULLIF(COUNT(DISTINCT th.transaction_id), 0) AS panier_moyen
+FROM 
+    Transaction.Transactions_header th
+JOIN 
+    `Transaction.transaction_line_nettoye` tl ON th.transaction_id = tl.transaction_id
+WHERE
+    th.purchase_date BETWEEN '2021-01-01' AND '2022-12-31'
+GROUP BY 
+    th.client_id;
+
+
+
+//test du seuil de client carte cadeau 
+SELECT 
+    client_carte_cadeau,
+    COUNT(*) AS count_clients
+FROM 
+    Transaction.client
+GROUP BY 
+    client_carte_cadeau;
+
+
+//test du seuil client client_promo
+SELECT 
+    client_promo,
+    COUNT(*) AS count_clients
+FROM 
+    Transaction.client
+GROUP BY 
+    client_promo;
+

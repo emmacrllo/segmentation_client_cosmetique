@@ -1,0 +1,72 @@
+//Étude statistique de Transactions_header :
+1. Nombre total de transactions	
+
+SELECT COUNT(transaction_id) AS total_transactions
+    FROM Transaction.Transactions_header
+    WHERE purchase_date >= '2021-01-01' AND purchase_date <= '2022-12-31';
+
+2.Nombre de clients uniques	    
+SELECT COUNT(DISTINCT client_id) AS unique_clients
+    FROM Transaction.Transactions_header
+    WHERE purchase_date >= '2021-01-01' AND purchase_date <= '2022-12-31';
+
+3.Statistiques sur les transactions	
+SELECT
+    MIN(purchase_date) AS first_transaction_date,
+    MAX(purchase_date) AS last_transaction_date,
+    FROM Transaction.Transactions_header
+    WHERE purchase_date >= '2021-01-01' AND purchase_date <= '2022-12-31’;
+
+4.Paiements par carte de crédit	
+SELECT
+  AVG(paid_with_credit_card) AS avg_paid_with_credit_card,
+  SUM(paid_with_credit_card) AS total_paid_with_credit_card,
+  COUNT(*) - SUM(paid_with_credit_card) AS total_not_paid_with_credit_card
+  FROM Transaction.Transactions_header
+  WHERE purchase_date >= '2021-01-01' AND purchase_date <= '2022-12-31'
+
+//Étude statistique de transaction line 
+
+1. Prix unitaire brut TTC :
+    SELECT
+        AVG(unit_raw_price_ttc) AS avg_unit_raw_price_ttc,
+        STDDEV(unit_raw_price_ttc) AS stddev_unit_raw_price_ttc,
+        MIN(unit_raw_price_ttc) AS min_unit_raw_price_ttc,
+        MAX(unit_raw_price_ttc) AS max_unit_raw_price_ttc
+    FROM Transaction.transaction_line_nettoye;
+
+
+2. Prix unitaire net TTC:
+SELECT
+        AVG(unit_net_price_ttc) AS avg_unit_net_price_ttc,
+        STDDEV(unit_net_price_ttc) AS stddev_unit_net_price_ttc,
+        MIN(unit_net_price_ttc) AS min_unit_net_price_ttc,
+        MAX(unit_net_price_ttc) AS max_unit_net_price_ttc
+    FROM Transaction.transaction_line_nettoye;
+
+
+3. Quantité des produits :
+    SELECT
+        AVG(qty) AS avg_qty,
+        STDDEV(qty) AS stddev_qty,
+        MIN(qty) AS min_qty,
+        MAX(qty) AS max_qty
+    FROM Transaction.transaction_line_nettoye;
+
+
+4. Total brut TTC :
+    SELECT
+        AVG(tot_raw_ttc) AS avg_tot_raw_ttc,
+        STDDEV(tot_raw_ttc) AS stddev_tot_raw_ttc,
+        MIN(tot_raw_ttc) AS min_tot_raw_ttc,
+        MAX(tot_raw_ttc) AS max_tot_raw_ttc
+    FROM Transaction.transaction_line_nettoye;
+
+
+5. Total net TTC :
+  SELECT
+        AVG(tot_net_ttc) AS avg_tot_net_ttc,
+        STDDEV(tot_net_ttc) AS stddev_tot_net_ttc,
+        MIN(tot_net_ttc) AS min_tot_net_ttc,
+        MAX(tot_net_ttc) AS max_tot_net_ttc
+    FROM Transaction.transaction_line_nettoye;
