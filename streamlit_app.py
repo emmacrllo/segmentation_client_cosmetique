@@ -1,5 +1,6 @@
 import streamlit as st
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Générer des données aléatoires
 data = np.random.randn(1000)
@@ -11,4 +12,5 @@ st.title("Visualisation d'un histogramme")
 st.subheader("Histogramme de données aléatoires")
 
 # Afficher l'histogramme
-st.hist(data, bins=20)
+plt.hist(data, bins=20)
+st.pyplot()
