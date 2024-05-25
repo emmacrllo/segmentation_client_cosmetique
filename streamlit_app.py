@@ -1,14 +1,14 @@
+import subprocess
+
+# Installation des packages nécessaires
+subprocess.run(["pip", "install", "google-cloud-bigquery", "matplotlib", "seaborn"])
+
+# Importation des modules nécessaires après l'installation
 import streamlit as st
+from google.cloud import bigquery
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import subprocess
-
-# Installation du package google-cloud-bigquery
-subprocess.run(["pip", "install", "google-cloud-bigquery"])
-
-# Importation des modules nécessaires après l'installation
-from google.cloud import bigquery
 
 # Initialisation du client BigQuery
 client = bigquery.Client()
