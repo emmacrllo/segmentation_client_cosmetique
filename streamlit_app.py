@@ -9,6 +9,10 @@ from google.cloud import bigquery
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
+
+# Définition du chemin du fichier JSON de clés d'identification
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/emma/Documents/ml-segmentation-client-8467fc188310.json"
 
 # Initialisation du client BigQuery
 client = bigquery.Client()
